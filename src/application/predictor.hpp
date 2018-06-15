@@ -7,7 +7,6 @@
 #include <LightGBM/dataset.h>
 
 #include <LightGBM/utils/openmp_wrapper.h>
-
 #include <map>
 #include <cstring>
 #include <cstdio>
@@ -16,6 +15,8 @@
 #include <functional>
 #include <string>
 #include <memory>
+
+#include "../io/parse.hpp"
 
 namespace LightGBM {
 
@@ -208,7 +209,65 @@ public:
     };
     predict_data_reader.ReadAllAndProcessParallel(process_fun);
   }
-
+  //accept
+  /*
+  //vector_datas:输入字符串
+  */
+  void Predict(std::vector<std::string>& vector_datas, int label_index,std::vector< std::vector<double> >& result)
+  {
+	  std::vector<std::string>& const lines = vector_datas;
+	  std::vector<std::pair<int, double>> oneline_features;
+	  //建立一个parse,将string 装换为vector
+	  std::vector<std::string> result_to_write(lines.size());
+	  OMP_INIT_EX();
+#pragma omp parallel for schedule(static) firstprivate(oneline_features)
+	  for (data_size_t i = 0; i < static_cast<data_size_t>(lines.size()); ++i) {
+		  OMP_LOOP_EX_BEGIN();
+		  oneline_features.clear();
+		  // parser
+		  //parser_fun(lines[i].c_str(), &oneline_features);
+		  //transform str to vectors.
+		  {
+			  const char *str = lines[i].c_str();
+			  std::vector<std::pair<int, double>>* out_features = &oneline_features;
+			  int idx = 0;
+			  double val = 0.0f;
+			  int bias = 0;
+			  int label_idx_=label_index;
+			  double out_label = -1;
+			  while (*str != '\0') 
+			  {
+				  str = Common::Atof(str, &val);
+				  if (idx == label_idx_) 
+					  //取出label列的值
+				  {
+					  out_label = val;
+					  bias = -1;
+				  }
+				  else if (std::fabs(val) > kZeroThreshold || std::isnan(val)) 
+				  {
+					  out_features->emplace_back(idx + bias, val);
+				  }
+				  ++idx;
+				  if (*str == '\t') 
+				  {
+					  ++str;
+				  }
+				  else if (*str != '\0') 
+				  {
+					  Log::Fatal("Input format error when parsing as TSV");
+				  }
+			  }
+		  }
+		  // predict
+		  std::vector<double> res(num_pred_one_row_);
+		  predict_fun_(oneline_features, res.data());
+		  result.push_back(res);
+		  OMP_LOOP_EX_END();
+	  }
+	  OMP_THROW_EX();
+  }
+  
 private:
 
   void CopyToPredictBuffer(double* pred_buf, const std::vector<std::pair<int, double>>& features) {

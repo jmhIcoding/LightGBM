@@ -263,5 +263,38 @@ void Application::ConvertModel() {
   boosting_->SaveModelToIfElse(-1, config_.convert_model.c_str());
 }
 
+#pragma region OnlineApp
+OnlineApp::OnlineApp(char *model_filename,char *config_file="predict.conf")
+{
+	this->input_model = std::string(model_filename);
+	int argc = 2;
+	char *argv[2];
+	char arg[32] = { 0 };
+	argv[0] = NULL;
+	argv[1] = arg;
+	sprintf(argv[1], "config=%s", config_file);
+	//load default parameters.
+	this->LoadParameters(argc,(char**) argv);
 
+	// set number of threads for openmp
+	if (config_.num_threads > 0) {
+		omp_set_num_threads(config_.num_threads);
+	}
+	omp_set_nested(0);
+}
+void OnlineApp::InitPredict()
+{
+	boosting_.reset(
+		Boosting::CreateBoosting("gbdt", this->input_model.c_str()));
+	// create predictor
+	predictor=new Predictor(boosting_.get(), config_.num_iteration_predict, config_.predict_raw_score,
+		config_.predict_leaf_index, config_.predict_contrib,
+		config_.pred_early_stop, config_.pred_early_stop_freq,
+		config_.pred_early_stop_margin);
+}
+void OnlineApp::Predict(std::vector<std::string>& vector_datas, int label_index, std::vector< std::vector<double> >& result)
+{
+	predictor->Predict(vector_datas,label_index,result);
+}
+#pragma endregion
 }  // namespace LightGBM
