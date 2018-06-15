@@ -214,7 +214,7 @@ public:
   */
   void Predict(std::vector<std::string>& vector_datas, int label_index,std::vector< std::vector<double> >& result)
   {
-	  std::vector<std::string>& const lines = vector_datas;
+	  std::vector<std::string>& lines = vector_datas;
 	  std::vector<std::pair<int, double>> oneline_features;
 	  //建立一个parse,将string 装换为vector
 	  std::vector<std::string> result_to_write(lines.size());
