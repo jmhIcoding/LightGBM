@@ -16,7 +16,6 @@
 #include <string>
 #include <memory>
 
-#include "../io/parse.hpp"
 
 namespace LightGBM {
 
