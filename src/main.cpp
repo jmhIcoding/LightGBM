@@ -1,7 +1,10 @@
 #include <iostream>
 #include <LightGBM/application.h>
-
+#include <stdlib.h>
+#include <stdio.h>
 int main(int argc, char** argv) {
+	printf("Hello This is a test...\n");
+	printf("Welcome!\n");
   try {
     LightGBM::Application app(argc, argv);
     app.Run();
