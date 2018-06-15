@@ -2,7 +2,8 @@
 #include <LightGBM/application.h>
 #include <stdlib.h>
 #include <stdio.h>
-int main(int argc, char** argv) {
+#include <vector>
+int main() {
 	//printf("Hello This is a test...\n");
 	//printf("Welcome!\n");
  // try {

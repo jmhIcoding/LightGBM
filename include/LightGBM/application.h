@@ -9,11 +9,11 @@
 #include <memory>
 namespace LightGBM {
 
-class DatasetLoader;
-class Dataset;
-class Boosting;
-class ObjectiveFunction;
-class Metric;
+//class DatasetLoader;
+//class Dataset;
+//class Boosting;
+//class ObjectiveFunction;
+//class Metric;
 
 /*!
 * \brief The main entrance of LightGBM. this application has two tasks:
