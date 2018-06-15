@@ -24,14 +24,14 @@ class Metric;
 */
 class Application {
 public:
-	Application()
+	explicit Application()
 	{
 		;
 	}
   Application(int argc, char** argv);
 
   /*! \brief Destructor */
-  ~Application();
+  virtual ~Application();
 
   /*! \brief To call this funciton to run application*/
   inline void Run();
@@ -106,6 +106,10 @@ public:
 	OnlineApp(char * model_filename, char *config_file);
 	void InitPredict();
 	void Predict(std::vector<std::string>& vector_datas, int label_index, std::vector< std::vector<double> >& result);
+	~OnlineApp()
+	{
+		;
+	}
 private:
 	std::string input_model ;
 	//Predictor * predictor;//Later we should use smart point,such as auto_ptr<>¡¤¡¤¡¤
