@@ -1,7 +1,6 @@
 #ifndef LIGHTGBM_APPLICATION_H_
 #define LIGHTGBM_APPLICATION_H_
 
-#include "predictor.hpp"
 
 #include <LightGBM/meta.h>
 #include <LightGBM/config.h>
@@ -109,7 +108,7 @@ public:
 	void Predict(std::vector<std::string>& vector_datas, int label_index, std::vector< std::vector<double> >& result);
 private:
 	std::string input_model;
-    Predictor * predictor;//Later we should use smart point,such as auto_ptr<>，，，
+	//Predictor * predictor;//Later we should use smart point,such as auto_ptr<>，，，
 }
 
 #pragma endregion

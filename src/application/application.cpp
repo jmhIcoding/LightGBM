@@ -264,6 +264,7 @@ void Application::ConvertModel() {
 }
 
 #pragma region OnlineApp
+static Predictor * predictor;
 OnlineApp::OnlineApp(char *model_filename,char *config_file="predict.conf")
 {
 	this->input_model = std::string(model_filename);
@@ -287,7 +288,7 @@ void OnlineApp::InitPredict()
 	boosting_.reset(
 		Boosting::CreateBoosting("gbdt", this->input_model.c_str()));
 	// create predictor
-	predictor=new Predictor(boosting_.get(), config_.num_iteration_predict, config_.predict_raw_score,
+		predictor=new Predictor(boosting_.get(), config_.num_iteration_predict, config_.predict_raw_score,
 		config_.predict_leaf_index, config_.predict_contrib,
 		config_.pred_early_stop, config_.pred_early_stop_freq,
 		config_.pred_early_stop_margin);
