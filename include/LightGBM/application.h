@@ -1,6 +1,8 @@
 #ifndef LIGHTGBM_APPLICATION_H_
 #define LIGHTGBM_APPLICATION_H_
 
+#include "predictor.hpp"
+
 #include <LightGBM/meta.h>
 #include <LightGBM/config.h>
 #include <string>
