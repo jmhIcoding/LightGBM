@@ -5,8 +5,12 @@ elseif(USE_GPU OR APPLE)
 else()
   cmake_minimum_required(VERSION 2.8)
 endif()
-
-PROJECT(lightgbm)
+if(OFFICIAL)
+	PROJECT(lightgbm)
+	ADD_DEFINITIONS(-DOFFICIAL)
+else(OFFICIAL)
+	PROJECT(predictgbm)
+endif(OFFICIAL)
 
 OPTION(USE_MPI "MPI based parallel learning" OFF)
 OPTION(USE_OPENMP "Enable OpenMP" ON)
@@ -102,7 +106,7 @@ if(USE_HDFS)
 endif(USE_HDFS)
 
 if(UNIX OR MINGW OR CYGWIN)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -O3 -Wextra -Wall -Wno-ignored-attributes -Wno-unknown-pragmas -Wno-return-type")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11 -pthread -O3 -Wextra -Wall -Wno-ignored-attributes -Wno-unknown-pragmas -Wno-return-type")
 endif()
 
 if(WIN32 AND MINGW)
@@ -158,8 +162,15 @@ file(GLOB SOURCES
     src/network/*.cpp
     src/treelearner/*.cpp
 )
+if(OFFICIAL)
+	 execute_process(COMMAND cp ../src/traingbm.cpp ../src/main.cpp )
+	 add_executable(lightgbm src/main.cpp ${SOURCES})
+	 ADD_DEFINITIONS(-DOFFICIAL)
+else(OFFICIAL)
+	 execute_process(COMMAND cp ../src/predictgbm.cpp ../src/main.cpp )
+	 add_executable(predictgbm src/main.cpp ${SOURCES})
+endif(OFFICIAL)
 
-add_executable(lightgbm src/main.cpp ${SOURCES})
 add_library(_lightgbm SHARED src/c_api.cpp src/lightgbm_R.cpp  ${SOURCES})
 
 if(USE_SWIG)
@@ -199,10 +210,16 @@ if(WIN32 AND (MINGW OR CYGWIN))
     TARGET_LINK_LIBRARIES(lightgbm IPHLPAPI)
     TARGET_LINK_LIBRARIES(_lightgbm IPHLPAPI)
 endif()
-
+if(OFFICIAL)
 install(TARGETS lightgbm _lightgbm
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
         LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
         ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-
+		ADD_DEFINITIONS(-DOFFICIAL)
+else(OFFICIAL)
+install(TARGETS predictgbm _lightgbm
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+endif(OFFICIAL)
 install(DIRECTORY ${LightGBM_HEADER_DIR}/LightGBM DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
