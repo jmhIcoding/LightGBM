@@ -7,6 +7,7 @@
 #include <LightGBM/dataset.h>
 
 #include <LightGBM/utils/openmp_wrapper.h>
+
 #include <map>
 #include <cstring>
 #include <cstdio>
@@ -15,8 +16,7 @@
 #include <functional>
 #include <string>
 #include <memory>
-
-
+#include <semaphore.h>
 namespace LightGBM {
 
 /*!
@@ -110,12 +110,14 @@ public:
         };
       }
     }
+	sem_init(&lock,0,1);
   }
-
+  sem_t lock;
   /*!
   * \brief Destructor
   */
   ~Predictor() {
+	  sem_destroy(&lock);
   }
 
   inline const PredictFunction& GetPredictFunction() const {
@@ -208,15 +210,17 @@ public:
     };
     predict_data_reader.ReadAllAndProcessParallel(process_fun);
   }
-  //accept
+//accept
   /*
-  //vector_datas:输入字符串
+  //vector_datas:杈撳叆瀛楃涓?
   */
-  void Predict(std::vector<std::string>& vector_datas, int label_index,std::vector< std::vector<double> >& result)
+  void Predict(std::vector<std::string>& vector_datas, int label_index,std::map<int,std::vector<double> >& result)
   {
+	  printf("predict now!!!\n");
 	  std::vector<std::string>& lines = vector_datas;
 	  std::vector<std::pair<int, double>> oneline_features;
-	  //建立一个parse,将string 装换为vector
+	  std::string res_string;
+	  //寤虹珛涓�涓猵arse,灏唖tring 瑁呮崲涓簐ector
 	  std::vector<std::string> result_to_write(lines.size());
 	  OMP_INIT_EX();
 #pragma omp parallel for schedule(static) firstprivate(oneline_features)
@@ -233,12 +237,12 @@ public:
 			  double val = 0.0f;
 			  int bias = 0;
 			  int label_idx_=label_index;
-			  double out_label = -1;
+			  double out_label=-1;
 			  while (*str != '\0') 
 			  {
 				  str = Common::Atof(str, &val);
 				  if (idx == label_idx_) 
-					  //取出label列的值
+					  //鍙栧嚭label鍒楃殑鍊?
 				  {
 					  out_label = val;
 					  bias = -1;
@@ -261,9 +265,16 @@ public:
 		  // predict
 		  std::vector<double> res(num_pred_one_row_);
 		  predict_fun_(oneline_features, res.data());
-		  result.push_back(res);
+		  //auto str_result=Common::Join<double>(res,"\t");
+		  //printf("%d\t%s\n",i,str_result.c_str());
+		  //res_string+=str_result+std::string("\n");
+		  sem_wait(&lock);
+		  result[i]=res;
+		  sem_post(&lock);
 		  OMP_LOOP_EX_END();
 	  }
+	  //printf("over....\n");
+	  //printf("%s",res_string.c_str());
 	  OMP_THROW_EX();
   }
   
